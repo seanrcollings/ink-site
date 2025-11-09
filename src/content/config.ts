@@ -4,7 +4,6 @@ const stories = defineCollection({
   type: 'content',
   schema: z.object({
     title: z.string(),
-    slug: z.string(),
     description: z.string(),
     status: z.enum(['ongoing', 'complete', 'hiatus']),
     startDate: z.date(),
