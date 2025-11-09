@@ -1,46 +1,41 @@
-# Astro Starter Kit: Basics
+# ink.seancollings.dev
 
-```sh
-npm create astro@latest -- --template basics
+A static story publishing site built with Astro. Host multiple stories with chapters, written in markdown and deployed via GitHub Actions.
+
+## Features
+
+- 📚 Multi-story support with Content Collections
+- 📖 Chapter reading with prev/next navigation
+- 🌙 Dark mode toggle with localStorage persistence
+- 📊 Reading progress indicator
+- 🔖 Auto-bookmark scroll position
+- 🚀 Auto-deploy to GitHub Pages on push
+
+## Development
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start dev server at localhost:4321
+npm run build        # Build for production
+npm run preview      # Preview production build
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Adding Content
 
-## 🚀 Project Structure
+See `CLAUDE.md` for detailed content management instructions.
 
-Inside of your Astro project, you'll see the following folders and files:
+### Quick Start
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+1. Create story: `src/content/stories/my-story.md`
+2. Add frontmatter (title, slug, description, status, startDate)
+3. Create chapter folder: `src/content/chapters/my-story/`
+4. Add chapters with frontmatter (title, chapterNumber, storySlug, publishDate)
+5. Commit and push to deploy
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Tech Stack
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Astro 5.x
+- TypeScript (strict mode)
+- Tailwind CSS with Typography plugin
+- Content Collections for type-safe content
+- GitHub Actions for CI/CD
