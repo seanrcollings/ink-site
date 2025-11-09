@@ -1,0 +1,172 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const chapters = await getCollection('chapters');
+  return chapters.map(chapter => {
+    // Extract chapter slug part from full slug (e.g., "example-story/chapter-one" -> "chapter-one")
+    const chapterSlugPart = chapter.slug.split('/').pop() || chapter.slug;
+    return {
+      params: {
+        storySlug: chapter.data.storySlug,
+        chapterSlug: chapterSlugPart
+      },
+      props: { chapter },
+    };
+  });
+}
+
+const { chapter } = Astro.props;
+const { Content } = await chapter.render();
+
+// Get story info
+const stories = await getCollection('stories');
+const story = stories.find(s => s.slug === chapter.data.storySlug);
+
+// Get all chapters for navigation
+const allChapters = await getCollection('chapters');
+const storyChapters = allChapters
+  .filter(ch => ch.data.storySlug === chapter.data.storySlug)
+  .sort((a, b) => a.data.chapterNumber - b.data.chapterNumber);
+
+// Find prev/next chapters
+const currentIndex = storyChapters.findIndex(ch => ch.slug === chapter.slug);
+const prevChapter = currentIndex > 0 ? storyChapters[currentIndex - 1] : null;
+const nextChapter = currentIndex < storyChapters.length - 1 ? storyChapters[currentIndex + 1] : null;
+
+const pageTitle = `${chapter.data.title} - ${story?.data.title} - ink`;
+---
+
+<Layout title={pageTitle} description={chapter.data.summary}>
+  <!-- Reading progress bar -->
+  <div id="readingProgress" class="fixed top-0 left-0 h-1 bg-blue-600 dark:bg-blue-400 z-50 transition-all" style="width: 0%"></div>
+
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- Navigation header -->
+    <nav class="mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
+      <a
+        href={`/${chapter.data.storySlug}`}
+        class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-4"
+      >
+        ← Back to {story?.data.title}
+      </a>
+
+      <div class="flex items-center justify-between">
+        {prevChapter ? (
+          <a
+            href={`/${chapter.data.storySlug}/${prevChapter.slug.split('/').pop()}`}
+            class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            ← Previous
+          </a>
+        ) : (
+          <div class="w-24"></div>
+        )}
+
+        <span class="text-sm text-gray-600 dark:text-gray-400">
+          Chapter {chapter.data.chapterNumber}
+        </span>
+
+        {nextChapter ? (
+          <a
+            href={`/${chapter.data.storySlug}/${nextChapter.slug.split('/').pop()}`}
+            class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            Next →
+          </a>
+        ) : (
+          <div class="w-24"></div>
+        )}
+      </div>
+    </nav>
+
+    <!-- Chapter content -->
+    <article id="chapterContent" class="prose prose-lg dark:prose-invert max-w-none">
+      <Content />
+    </article>
+
+    <!-- Navigation footer -->
+    <nav class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between">
+        {prevChapter ? (
+          <a
+            href={`/${chapter.data.storySlug}/${prevChapter.slug.split('/').pop()}`}
+            class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            ← Previous: {prevChapter.data.title}
+          </a>
+        ) : (
+          <div></div>
+        )}
+
+        {nextChapter ? (
+          <a
+            href={`/${chapter.data.storySlug}/${nextChapter.slug.split('/').pop()}`}
+            class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            Next: {nextChapter.data.title} →
+          </a>
+        ) : (
+          <div></div>
+        )}
+      </div>
+    </nav>
+  </div>
+
+  <script define:vars={{ storySlug: chapter.data.storySlug, chapterSlug: chapter.slug }}>
+    // Reading progress indicator
+    const progressBar = document.getElementById('readingProgress');
+    const chapterContent = document.getElementById('chapterContent');
+
+    function updateReadingProgress() {
+      if (!progressBar || !chapterContent) return;
+
+      const contentTop = chapterContent.offsetTop;
+      const contentHeight = chapterContent.offsetHeight;
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+
+      const scrollStart = contentTop;
+      const scrollEnd = contentTop + contentHeight - windowHeight;
+
+      if (scrollPosition < scrollStart) {
+        progressBar.style.width = '0%';
+      } else if (scrollPosition > scrollEnd) {
+        progressBar.style.width = '100%';
+      } else {
+        const progress = ((scrollPosition - scrollStart) / (scrollEnd - scrollStart)) * 100;
+        progressBar.style.width = `${progress}%`;
+      }
+    }
+
+    window.addEventListener('scroll', updateReadingProgress);
+    window.addEventListener('resize', updateReadingProgress);
+    updateReadingProgress();
+
+    // Bookmarking
+    const bookmarkKey = `bookmark-${storySlug}-${chapterSlug}`;
+
+    // Save scroll position periodically
+    let saveTimeout;
+    window.addEventListener('scroll', () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        localStorage.setItem(bookmarkKey, scrollPercent.toString());
+      }, 500);
+    });
+
+    // Restore scroll position on load
+    const savedPosition = localStorage.getItem(bookmarkKey);
+    if (savedPosition && parseFloat(savedPosition) > 5) {
+      const scrollPosition = (parseFloat(savedPosition) / 100) * (document.documentElement.scrollHeight - window.innerHeight);
+
+      // Show prompt
+      const shouldRestore = confirm('Continue where you left off?');
+      if (shouldRestore) {
+        window.scrollTo(0, scrollPosition);
+      }
+    }
+  </script>
+</Layout>
