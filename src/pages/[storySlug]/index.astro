@@ -21,13 +21,12 @@ const chapters = allChapters
 
 <Layout title={story.data.title} description={story.data.description}>
   <div class="max-w-4xl mx-auto px-4 py-8">
-    <!-- Back to library -->
-    <a
-      href="/"
-      class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-6"
-    >
-      ← Back to Library
-    </a>
+    <!-- Breadcrumbs -->
+    <nav class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+      <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">Library</a>
+      <span class="mx-2">/</span>
+      <span>{story.data.title}</span>
+    </nav>
 
     <!-- Story header -->
     <header class="mb-8">
