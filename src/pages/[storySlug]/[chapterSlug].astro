@@ -35,7 +35,7 @@ const currentIndex = storyChapters.findIndex(ch => ch.slug === chapter.slug);
 const prevChapter = currentIndex > 0 ? storyChapters[currentIndex - 1] : null;
 const nextChapter = currentIndex < storyChapters.length - 1 ? storyChapters[currentIndex + 1] : null;
 
-const pageTitle = `${chapter.data.title} - ${story?.data.title} - ink`;
+const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
 ---
 
 <Layout title={pageTitle} description={chapter.data.summary}>
