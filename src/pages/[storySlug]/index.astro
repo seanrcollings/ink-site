@@ -54,12 +54,19 @@ const chapters = allChapters
       </p>
     ) : (
       <>
-        <div class="mb-6">
+        <div class="mb-6 flex gap-4">
           <a
             href={`/${story.slug}/${chapters[0].slug.split('/').pop()}`}
             class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
             Start Reading
+          </a>
+          <a
+            id="resumeReadingBtn"
+            href="#"
+            class="hidden px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Resume Reading
           </a>
         </div>
 
@@ -97,4 +104,17 @@ const chapters = allChapters
       </>
     )}
   </div>
+
+  <script is:inline define:vars={{ storySlug: story.slug }}>
+    // Check if there's a last chapter read for this story
+    const lastChapterSlug = localStorage.getItem(`lastChapter-${storySlug}`);
+
+    if (lastChapterSlug) {
+      const resumeBtn = document.getElementById('resumeReadingBtn');
+      if (resumeBtn) {
+        resumeBtn.href = `/${storySlug}/${lastChapterSlug}`;
+        resumeBtn.classList.remove('hidden');
+      }
+    }
+  </script>
 </Layout>

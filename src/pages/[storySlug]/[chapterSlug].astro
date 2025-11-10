@@ -112,7 +112,18 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
         )}
       </div>
     </nav>
+
   </div>
+
+  <button
+    id="scrollToTopBtn"
+    class="fixed bottom-8 right-8 p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all opacity-0 pointer-events-none z-40"
+    aria-label="Scroll to top"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+    </svg>
+  </button>
 
   <script define:vars={{ storySlug: chapter.data.storySlug, chapterSlug: chapter.slug }}>
     // Reading progress indicator
@@ -144,6 +155,10 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
     window.addEventListener('resize', updateReadingProgress);
     updateReadingProgress();
 
+    // Record that this chapter was opened
+    const chapterSlugPart = chapterSlug.split('/').pop();
+    localStorage.setItem(`lastChapter-${storySlug}`, chapterSlugPart);
+
     // Bookmarking
     const bookmarkKey = `bookmark-${storySlug}-${chapterSlug}`;
 
@@ -161,12 +176,29 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
     const savedPosition = localStorage.getItem(bookmarkKey);
     if (savedPosition && parseFloat(savedPosition) > 5) {
       const scrollPosition = (parseFloat(savedPosition) / 100) * (document.documentElement.scrollHeight - window.innerHeight);
+      window.scrollTo(0, scrollPosition);
+    }
 
-      // Show prompt
-      const shouldRestore = confirm('Continue where you left off?');
-      if (shouldRestore) {
-        window.scrollTo(0, scrollPosition);
+    // Scroll to top button
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    if (scrollToTopBtn) {
+      // Show/hide button based on scroll position
+      function updateScrollToTopVisibility() {
+        if (window.scrollY > 300) {
+          scrollToTopBtn.style.opacity = '1';
+          scrollToTopBtn.style.pointerEvents = 'auto';
+        } else {
+          scrollToTopBtn.style.opacity = '0';
+          scrollToTopBtn.style.pointerEvents = 'none';
+        }
       }
+
+      window.addEventListener('scroll', updateScrollToTopVisibility);
+      updateScrollToTopVisibility();
+
+      scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     }
   </script>
 </Layout>
