@@ -8,6 +8,7 @@ const stories = defineCollection({
     status: z.enum(['ongoing', 'complete', 'hiatus']),
     startDate: z.date(),
     coverImage: z.string().optional(),
+    state: z.enum(['unpublished', 'published', 'unlisted']).default('unpublished'),
   }),
 });
 
@@ -19,6 +20,7 @@ const chapters = defineCollection({
     storySlug: z.string(),
     publishDate: z.date(),
     summary: z.string().optional(),
+    state: z.enum(['unpublished', 'published', 'unlisted']).default('unpublished'),
   }),
 });
 

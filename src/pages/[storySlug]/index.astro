@@ -3,7 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const stories = await getCollection('stories');
+  // Generate paths for published and unlisted stories (not unpublished)
+  const stories = await getCollection('stories', ({ data }) => data.state !== 'unpublished');
   return stories.map(story => ({
     params: { storySlug: story.slug },
     props: { story },
@@ -12,8 +13,8 @@ export async function getStaticPaths() {
 
 const { story } = Astro.props;
 
-// Get chapters for this story
-const allChapters = await getCollection('chapters');
+// Get published chapters for this story (visible in list)
+const allChapters = await getCollection('chapters', ({ data }) => data.state === 'published');
 const chapters = allChapters
   .filter(ch => ch.data.storySlug === story.slug)
   .sort((a, b) => a.data.chapterNumber - b.data.chapterNumber);

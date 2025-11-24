@@ -3,18 +3,25 @@ import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const chapters = await getCollection('chapters');
-  return chapters.map(chapter => {
-    // Extract chapter slug part from full slug (e.g., "example-story/chapter-one" -> "chapter-one")
-    const chapterSlugPart = chapter.slug.split('/').pop() || chapter.slug;
-    return {
-      params: {
-        storySlug: chapter.data.storySlug,
-        chapterSlug: chapterSlugPart
-      },
-      props: { chapter },
-    };
-  });
+  // Generate paths for published and unlisted chapters (not unpublished)
+  // Also exclude chapters whose parent story is unpublished
+  const chapters = await getCollection('chapters', ({ data }) => data.state !== 'unpublished');
+  const stories = await getCollection('stories', ({ data }) => data.state !== 'unpublished');
+  const accessibleStorySlugs = new Set(stories.map(s => s.slug));
+
+  return chapters
+    .filter(chapter => accessibleStorySlugs.has(chapter.data.storySlug))
+    .map(chapter => {
+      // Extract chapter slug part from full slug (e.g., "example-story/chapter-one" -> "chapter-one")
+      const chapterSlugPart = chapter.slug.split('/').pop() || chapter.slug;
+      return {
+        params: {
+          storySlug: chapter.data.storySlug,
+          chapterSlug: chapterSlugPart
+        },
+        props: { chapter },
+      };
+    });
 }
 
 const { chapter } = Astro.props;
@@ -24,8 +31,8 @@ const { Content } = await chapter.render();
 const stories = await getCollection('stories');
 const story = stories.find(s => s.slug === chapter.data.storySlug);
 
-// Get all chapters for navigation
-const allChapters = await getCollection('chapters');
+// Get published chapters for navigation (only show published in prev/next)
+const allChapters = await getCollection('chapters', ({ data }) => data.state === 'published');
 const storyChapters = allChapters
   .filter(ch => ch.data.storySlug === chapter.data.storySlug)
   .sort((a, b) => a.data.chapterNumber - b.data.chapterNumber);

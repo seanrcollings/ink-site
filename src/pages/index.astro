@@ -2,11 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
-// Get all stories
-const stories = await getCollection('stories');
+// Get published stories only (not unpublished or unlisted)
+const stories = await getCollection('stories', ({ data }) => data.state === 'published');
 
-// Get all chapters to find latest per story
-const allChapters = await getCollection('chapters');
+// Get published chapters to find latest per story
+const allChapters = await getCollection('chapters', ({ data }) => data.state === 'published');
 
 // Build story data with latest chapter info
 const storyData = stories.map(story => {
