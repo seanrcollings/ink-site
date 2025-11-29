@@ -42,13 +42,13 @@ Bemused the chief spoke, "Don't be a fool. We stop this charade now. Before you 
 
 *Focus*
 
-The sounds of the crowd drew away, the wind quieted. The stinging pain in my nose ebbed. My grip on the hilt tightened, vision narrowing until nothing but the contest remained. Time slowed to a trickle, each moment seeming to stretch in to infinity. I was the wind. I was the storm. I was the fury.
+The sounds of the crowd drew away, the wind quieted. The stinging pain in my nose ebbed. My grip on the hilt tightened, vision narrowing until nothing but the contest remained. Time slowed to a trickle, each moment seeming to stretch into infinity. I locked eyes with the chief, eyes narrowed. Something in my expression must have seemed different. The chief frowned and set his feet in a wide stance, knees bent slightly.
 
 *Move*
 
-I flashed forward, blade already moving in an upward arc. The chief pitched backwards, the blade sliding past his chin, but only by a hair. In this strange slow-time, I saw his eyes widen in what might have been surprise or shock. I pressed forward, throwing everything into a flurry of strikes. For a moment I thought I saw something shift in his expression. Respect, perhaps, or at least interest.
+I flashed forward, blade already moving in an upward arc. The chief pitched backwards, the blade sliding past his chin, but only by a hair. In this strange slow-time, I saw his eyes widen in what might have been surprise or shock. I pressed forward, throwing everything into a flurry of strikes—each one faster than the last. The chief stepped to my left to avoid my thrust, but left himself unguarded. My fist drove up and into his stomach, sending him staggering back. I continued the assault, stepping forward with each swing, forcing him to retreat. I struck left, then right, his eyes barely able to follow the flowing path of my blade. The edge whipped past his chest, then was turned away by his steel vambraces, now revealed through slashes in his sleeves. Though he continued to avoid my sword he was running out of luck and out of space to maneuver. Before long it would be over. A laugh escaped me then, sharp and disbelieving. I *was* the wind. I *was* the storm. I *was* the—
 
-Metal sang from its scabbard. Steel met steel with a sharp trill that rang through the evening air, sparks flying in all directions. We stood locked, blade to blade, close enough that I could smell last night's wine on his breath. He pressed down on me, using his superior weight and height to his advantage. My back foot slipped slightly, but somehow I managed to set it right, pushing back against his incredible force.
+Metal sang from its scabbard. Steel met steel with a sharp trill that rang through the evening air, sparks flying in all directions. We stood locked, blade to blade, close enough that I could smell last night's wine on his breath. He pressed down on me, using his superior weight and height to his advantage. My back foot slipped slightly, but somehow I managed to set it right. I kept my grip steady even as the muscles in my shoulders and arms began to scream in protest.
 
 Then he locked eyes with me. His face split into a terrible lipless smile that did not reach his eyes. Cold, dead eyes without mercy or compassion. For a moment, just one, I felt my courage slip. My breath caught in my throat, knees buckling slightly under his impossible strength.
 
@@ -70,7 +70,7 @@ Then the laughter stopped. Footsteps approached. The chief's shadow fell over me
 
 "Look at me," he commanded. I remained frozen, eyes focused on the stone between his feet. A rough hand grabbed my chin, wrenching my face up to meet his. His eyes were slate grey, hard, without a hint of remorse. "When I speak, you listen," he said quietly. "Here, my word is your law, your scripture, your truth. Do you understand?"
 
-I held his gaze for a long moment, hatred burning within me. Though I said nothing, I projected my rage out towards him with every ounce of soul I had. Mouth twisting into a smirk, his grip tightened every so slightly around my neck. An unspoken reminder of what little power I held. Suddenly the fire within me dimmed and I slowly nodded in understanding.
+I held his gaze, shoulders high, back straight. My jaw clenched, breath hissing through my teeth. Every muscle screamed to pull away, to strike, to reject his command. Blood continued to drip from my mangled nose, running down my face and onto his arm and hand. His mouth twisted into a smirk. His grip tightened ever so slightly - not enough to hurt, just enough to remind. Remind of my place. And his. The fight went out of me. I nodded slowly.
 
 His smirk widened into a full smile, "Good", he said, drawing a large knife from a scabbard at his belt. "Now let this be a lesson on your place." He lifted the blade in front of my face, my own reflection staring back at me from its metallic sheen. "And of my mercy."
 
