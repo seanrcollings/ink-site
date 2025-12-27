@@ -442,21 +442,38 @@ async function sendEmail(markdownContent) {
   const html = markdownToHTML(markdownContent);
 
   try {
-    const result = await resend.broadcasts.create({
+    // Step 1: Create the broadcast
+    console.log("  Creating broadcast...");
+    const createResult = await resend.broadcasts.create({
       segmentId,
       from: "ink <updates@ink.seancollings.dev>",
       subject: "New updates on ink",
-      // text: plainText,
+      text: plainText,
       html,
       name: `Newsletter ${new Date().toISOString()}`,
     });
 
-    if ("error" in result && result.error) {
-      throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+    if ("error" in createResult && createResult.error) {
+      throw new Error(`Resend API error: ${JSON.stringify(createResult.error)}`);
+    }
+
+    const broadcastId = createResult.data?.id;
+    if (!broadcastId) {
+      throw new Error("No broadcast ID returned from Resend");
+    }
+
+    console.log(`  Broadcast created: ${broadcastId}`);
+
+    // Step 2: Send the broadcast
+    console.log("  Sending broadcast...");
+    const sendResult = await resend.broadcasts.send(broadcastId);
+
+    if ("error" in sendResult && sendResult.error) {
+      throw new Error(`Failed to send broadcast: ${JSON.stringify(sendResult.error)}`);
     }
 
     console.log("✓ Email sent successfully");
-    console.log(`  Broadcast ID: ${result.data?.id}`);
+    console.log(`  Broadcast ID: ${broadcastId}`);
   } catch (error) {
     throw new Error(`Failed to send email: ${error.message}`);
   }
