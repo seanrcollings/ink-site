@@ -34,7 +34,7 @@ Create `.env.example`:
 ```bash
 # Resend API Configuration
 RESEND_API_KEY=re_your_api_key_here
-RESEND_AUDIENCE_ID=your_audience_id_here
+RESEND_SEGMENT_ID=your_segment_id_here
 ```
 
 **Step 3: Update Astro config for hybrid mode**
@@ -106,7 +106,7 @@ import { Resend } from 'resend';
 export const prerender = false;
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
-const audienceId = import.meta.env.RESEND_AUDIENCE_ID;
+const segmentId = import.meta.env.RESEND_SEGMENT_ID;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -131,7 +131,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Validate environment variables
-    if (!import.meta.env.RESEND_API_KEY || !audienceId) {
+    if (!import.meta.env.RESEND_API_KEY || !segmentId) {
       console.error('Missing Resend configuration');
       return new Response(
         JSON.stringify({ error: 'Server configuration error' }),
@@ -139,11 +139,19 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Add subscriber to Resend audience
+    // Add subscriber to Resend segment
     const result = await resend.contacts.create({
       email,
-      audienceId,
+      unsubscribed: false,
     });
+
+    // Add contact to segment if creation was successful
+    if (result.data?.id) {
+      await resend.contacts.update({
+        id: result.data.id,
+        segmentIds: [segmentId],
+      });
+    }
 
     // Resend returns error in result if subscription fails
     if ('error' in result && result.error) {
@@ -186,7 +194,8 @@ git commit -m "feat: add newsletter subscription API endpoint
 
 - Create POST /api/subscribe endpoint
 - Validate email format and input
-- Integrate with Resend Audiences API
+- Integrate with Resend Contacts API
+- Add contacts to segment
 - Handle errors and rate limiting"
 ```
 
@@ -907,10 +916,10 @@ Add these functions before the exports:
  */
 async function sendEmail(markdownContent) {
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const audienceId = process.env.RESEND_AUDIENCE_ID;
+  const segmentId = process.env.RESEND_SEGMENT_ID;
 
-  if (!process.env.RESEND_API_KEY || !audienceId) {
-    throw new Error('Missing RESEND_API_KEY or RESEND_AUDIENCE_ID environment variables');
+  if (!process.env.RESEND_API_KEY || !segmentId) {
+    throw new Error('Missing RESEND_API_KEY or RESEND_SEGMENT_ID environment variables');
   }
 
   const plainText = markdownToPlainText(markdownContent);
@@ -918,7 +927,7 @@ async function sendEmail(markdownContent) {
 
   try {
     const result = await resend.broadcasts.create({
-      audienceId,
+      segmentId,
       from: 'ink <updates@ink.seancollings.dev>',
       subject: 'New updates on ink',
       text: plainText,
@@ -1085,7 +1094,7 @@ First, create a `.env` file with placeholder values:
 ```bash
 cat > .env << 'EOF'
 RESEND_API_KEY=test_key
-RESEND_AUDIENCE_ID=test_audience
+RESEND_SEGMENT_ID=test_segment
 EOF
 ```
 
@@ -1158,7 +1167,7 @@ jobs:
       - name: Send newsletter
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
+          RESEND_SEGMENT_ID: ${{ secrets.RESEND_SEGMENT_ID }}
         run: |
           if [ -n "${{ inputs.message }}" ]; then
             node scripts/send-newsletter.js --message "${{ inputs.message }}"
@@ -1217,10 +1226,10 @@ Visit [https://ink.seancollings.dev](https://ink.seancollings.dev) and enter you
 ### Prerequisites
 
 1. **Resend Account**: Sign up at [resend.com](https://resend.com)
-2. **Create an Audience**: In Resend dashboard, create an audience for subscribers
+2. **Create a Segment**: In Resend dashboard, create a segment for subscribers
 3. **Get API Key**: Generate API key in Resend dashboard
 4. **Configure Environment Variables**:
-   - Local: Create `.env` file with `RESEND_API_KEY` and `RESEND_AUDIENCE_ID`
+   - Local: Create `.env` file with `RESEND_API_KEY` and `RESEND_SEGMENT_ID`
    - Cloudflare: Add environment variables in Pages settings
    - GitHub: Add secrets in repository settings
 
@@ -1280,7 +1289,7 @@ Since no `newsletter/*` tags exist initially, the first run will include ALL pub
 
 **Email not sending**
 - Verify `RESEND_API_KEY` is set correctly
-- Check `RESEND_AUDIENCE_ID` matches your audience
+- Check `RESEND_SEGMENT_ID` matches your segment
 - Review Resend dashboard for errors
 - Check Resend sending domain is verified
 
@@ -1345,13 +1354,14 @@ Expected: Commit successful
 **Files:**
 - None (manual testing steps)
 
-**Step 1: Create Resend account and audience**
+**Step 1: Create Resend account and segment**
 
 1. Visit https://resend.com and sign up
-2. Create a new Audience
-3. Copy the Audience ID
-4. Generate an API key
-5. Note both values for next step
+2. Navigate to Contacts in the dashboard
+3. Create a new Segment for your newsletter subscribers
+4. Copy the Segment ID
+5. Generate an API key
+6. Note both values for next step
 
 **Step 2: Configure local environment**
 
@@ -1359,7 +1369,7 @@ Create `.env` file:
 ```bash
 cat > .env << 'EOF'
 RESEND_API_KEY=re_your_actual_api_key_here
-RESEND_AUDIENCE_ID=your_actual_audience_id_here
+RESEND_SEGMENT_ID=your_actual_segment_id_here
 EOF
 ```
 
@@ -1433,7 +1443,7 @@ In Cloudflare Pages project settings > Environment variables:
 
 Add for Production:
 - `RESEND_API_KEY`: Your Resend API key
-- `RESEND_AUDIENCE_ID`: Your Resend audience ID
+- `RESEND_SEGMENT_ID`: Your Resend segment ID
 
 **Step 4: Deploy**
 
@@ -1470,7 +1480,7 @@ When ready to switch from GitHub Pages:
 
 Add two secrets:
 - Name: `RESEND_API_KEY`, Value: Your Resend API key
-- Name: `RESEND_AUDIENCE_ID`, Value: Your Resend audience ID
+- Name: `RESEND_SEGMENT_ID`, Value: Your Resend segment ID
 
 **Step 2: Test GitHub Action**
 

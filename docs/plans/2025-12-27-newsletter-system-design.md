@@ -49,7 +49,7 @@ A simple form with:
 Astro server endpoint that:
 - Accepts POST requests with email
 - Validates email format
-- Calls Resend Audiences API to add subscriber
+- Calls Resend Contacts API to add subscriber to segment
 - Returns JSON success/error responses
 - Uses `export const prerender = false` to run server-side
 
@@ -58,7 +58,7 @@ Astro server endpoint that:
 ### Environment Variables
 
 - `RESEND_API_KEY` - Resend API key
-- `RESEND_AUDIENCE_ID` - Subscriber list ID
+- `RESEND_SEGMENT_ID` - Subscriber segment ID
 
 Stored in:
 - Cloudflare Pages settings (production)
@@ -131,7 +131,7 @@ Script accepts optional `--message "Your note"` flag:
 
 ### Sending & Tagging
 
-1. Call Resend API to send email to all subscribers in audience
+1. Call Resend API to send email to all subscribers in segment
 2. On success, create annotated git tag:
    - Tag name: `newsletter/YYYY-MM-DD-HHMM`
    - Annotation: Full markdown content of email
@@ -161,7 +161,7 @@ Manual trigger (`workflow_dispatch`) with optional text input for personal messa
 
 Configure in GitHub repository settings:
 - `RESEND_API_KEY`
-- `RESEND_AUDIENCE_ID`
+- `RESEND_SEGMENT_ID`
 
 ## Error Handling
 
@@ -201,7 +201,7 @@ Configure in GitHub repository settings:
 ### Local Development
 
 1. Test subscription form with `npm run dev`
-2. Create test Resend account/audience for development
+2. Create test Resend account/segment for development
 3. Test newsletter script with `--message "Test"` flag
 4. Verify content detection logic with mock git tags
 5. Manually verify emails in both plain text and HTML
@@ -241,7 +241,7 @@ After each send:
 - [ ] Create GitHub Action workflow
 - [ ] Set up Cloudflare Pages project
 - [ ] Configure environment variables (local + Cloudflare + GitHub)
-- [ ] Create Resend account and audience
+- [ ] Create Resend account and segment
 - [ ] Test subscription flow locally
 - [ ] Test newsletter script locally
 - [ ] Deploy to Cloudflare Pages
