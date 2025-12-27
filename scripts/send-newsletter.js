@@ -421,5 +421,65 @@ function createNewsletterTag(content) {
   }
 }
 
+/**
+ * Main execution
+ */
+async function main() {
+  try {
+    console.log('📧 Newsletter Script\n');
+
+    // Parse arguments
+    const args = parseArgs();
+
+    // Detect content changes
+    const changes = detectContentChanges();
+
+    // Check if there are any changes
+    if (!hasChanges(changes)) {
+      console.log('ℹ No new or updated content since last newsletter.');
+      console.log('  Nothing to send.');
+      process.exit(0);
+    }
+
+    // Display what was found
+    console.log('\nChanges detected:');
+    if (changes.newStories.length > 0) {
+      console.log(`  • ${changes.newStories.length} new ${changes.newStories.length === 1 ? 'story' : 'stories'}`);
+    }
+    if (changes.newChapters.length > 0) {
+      console.log(`  • ${changes.newChapters.length} new ${changes.newChapters.length === 1 ? 'chapter' : 'chapters'}`);
+    }
+    if (changes.updatedChapters.length > 0) {
+      console.log(`  • ${changes.updatedChapters.length} updated ${changes.updatedChapters.length === 1 ? 'chapter' : 'chapters'}`);
+    }
+    console.log('');
+
+    // Generate content summary
+    const contentSummary = generateContentSummary(changes);
+
+    // Get personal note (via editor or --message flag)
+    console.log(args.message ? 'Using message from --message flag\n' : 'Opening editor for personal note...\n');
+    const emailContent = await getPersonalNote(args.message, contentSummary);
+
+    // Send email
+    console.log('Sending email...');
+    await sendEmail(emailContent);
+
+    // Create git tag
+    console.log('Creating newsletter tag...');
+    createNewsletterTag(emailContent);
+
+    console.log('\n✓ Newsletter sent successfully!');
+  } catch (error) {
+    console.error('\n✗ Error:', error.message);
+    process.exit(1);
+  }
+}
+
+// Run if executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
+
 // Export for testing
 export { getLastNewsletterTag, getChangedFiles, parseFrontmatter, detectContentChanges };
