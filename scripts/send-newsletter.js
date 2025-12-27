@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-import { execSync, spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import matter from 'gray-matter';
-import { Resend } from 'resend';
-import 'dotenv/config';
+import { execSync, spawn } from "child_process";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import matter from "gray-matter";
+import { marked } from "marked";
+import { Resend } from "resend";
+import "dotenv/config";
 
 /**
  * Get the most recent newsletter tag
@@ -14,9 +15,9 @@ import 'dotenv/config';
  */
 function getLastNewsletterTag() {
   try {
-    const tags = execSync('git tag -l "newsletter/*"', { encoding: 'utf-8' })
+    const tags = execSync('git tag -l "newsletter/*"', { encoding: "utf-8" })
       .trim()
-      .split('\n')
+      .split("\n")
       .filter(Boolean);
 
     if (tags.length === 0) return null;
@@ -24,7 +25,7 @@ function getLastNewsletterTag() {
     // Sort tags by date (format: newsletter/YYYY-MM-DD-HHMM)
     return tags.sort().reverse()[0];
   } catch (error) {
-    console.error('Error fetching git tags:', error.message);
+    console.error("Error fetching git tags:", error.message);
     process.exit(1);
   }
 }
@@ -39,37 +40,39 @@ function getChangedFiles(tag, pattern) {
   try {
     if (!tag) {
       // No previous newsletter - treat all files as new
-      const allFiles = execSync(`git ls-files "${pattern}"`, { encoding: 'utf-8' })
+      const allFiles = execSync(`git ls-files "${pattern}"`, {
+        encoding: "utf-8",
+      })
         .trim()
-        .split('\n')
+        .split("\n")
         .filter(Boolean);
 
-      return allFiles.map(path => ({ path, status: 'new' }));
+      return allFiles.map((path) => ({ path, status: "new" }));
     }
 
     // Get files that exist now but didn't at the tag
     const newFiles = execSync(
       `git diff --name-only --diff-filter=A ${tag} HEAD -- "${pattern}"`,
-      { encoding: 'utf-8' }
+      { encoding: "utf-8" }
     )
       .trim()
-      .split('\n')
+      .split("\n")
       .filter(Boolean)
-      .map(path => ({ path, status: 'new' }));
+      .map((path) => ({ path, status: "new" }));
 
     // Get files that existed at tag and have been modified
     const modifiedFiles = execSync(
       `git diff --name-only --diff-filter=M ${tag} HEAD -- "${pattern}"`,
-      { encoding: 'utf-8' }
+      { encoding: "utf-8" }
     )
       .trim()
-      .split('\n')
+      .split("\n")
       .filter(Boolean)
-      .map(path => ({ path, status: 'modified' }));
+      .map((path) => ({ path, status: "modified" }));
 
     return [...newFiles, ...modifiedFiles];
   } catch (error) {
-    console.error('Error detecting changed files:', error.message);
+    console.error("Error detecting changed files:", error.message);
     process.exit(1);
   }
 }
@@ -81,13 +84,43 @@ function getChangedFiles(tag, pattern) {
  */
 function parseFrontmatter(filePath) {
   try {
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const fileContent = fs.readFileSync(filePath, "utf-8");
     const { data } = matter(fileContent);
     return data;
   } catch (error) {
-    console.warn(`Warning: Could not parse frontmatter in ${filePath}:`, error.message);
+    console.warn(
+      `Warning: Could not parse frontmatter in ${filePath}:`,
+      error.message
+    );
     return null;
   }
+}
+
+/**
+ * Load all story titles from story files
+ * @returns {Object} Map of story slug to story title
+ */
+function loadStoryTitles() {
+  const storyTitles = {};
+  try {
+    const storyFiles = execSync('git ls-files "src/content/stories/*.md"', {
+      encoding: "utf-8",
+    })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+
+    for (const filePath of storyFiles) {
+      const data = parseFrontmatter(filePath);
+      if (data && data.title) {
+        const slug = path.basename(filePath, ".md");
+        storyTitles[slug] = data.title;
+      }
+    }
+  } catch (error) {
+    console.warn("Warning: Could not load story titles:", error.message);
+  }
+  return storyTitles;
 }
 
 /**
@@ -97,23 +130,24 @@ function parseFrontmatter(filePath) {
 function detectContentChanges() {
   const lastTag = getLastNewsletterTag();
 
-  console.log(lastTag
-    ? `Comparing against last newsletter: ${lastTag}`
-    : 'No previous newsletter found - treating all content as new'
+  console.log(
+    lastTag
+      ? `Comparing against last newsletter: ${lastTag}`
+      : "No previous newsletter found - treating all content as new"
   );
 
   // Detect story changes
-  const storyFiles = getChangedFiles(lastTag, 'src/content/stories/*.md');
+  const storyFiles = getChangedFiles(lastTag, "src/content/stories/*.md");
   const newStories = storyFiles
-    .filter(f => f.status === 'new')
-    .map(f => {
+    .filter((f) => f.status === "new")
+    .map((f) => {
       const data = parseFrontmatter(f.path);
       if (!data) return null;
 
       // Only include published stories
-      if (data.state !== 'published') return null;
+      if (data.state !== "published") return null;
 
-      const slug = path.basename(f.path, '.md');
+      const slug = path.basename(f.path, ".md");
       return {
         title: data.title,
         slug,
@@ -124,7 +158,7 @@ function detectContentChanges() {
     .filter(Boolean);
 
   // Detect chapter changes
-  const chapterFiles = getChangedFiles(lastTag, 'src/content/chapters/**/*.md');
+  const chapterFiles = getChangedFiles(lastTag, "src/content/chapters/**/*.md");
 
   const newChapters = [];
   const updatedChapters = [];
@@ -134,9 +168,9 @@ function detectContentChanges() {
     if (!data) continue;
 
     // Only include published chapters
-    if (data.state !== 'published') continue;
+    if (data.state !== "published") continue;
 
-    const chapterSlug = path.basename(file.path, '.md');
+    const chapterSlug = path.basename(file.path, ".md");
     const storySlug = data.storySlug;
 
     const chapter = {
@@ -148,7 +182,7 @@ function detectContentChanges() {
       url: `https://ink.seancollings.dev/${storySlug}/${chapterSlug}`,
     };
 
-    if (file.status === 'new') {
+    if (file.status === "new") {
       newChapters.push(chapter);
     } else {
       updatedChapters.push(chapter);
@@ -178,30 +212,36 @@ function detectContentChanges() {
  */
 function generateContentSummary(changes) {
   const { newStories, newChapters, updatedChapters } = changes;
-  let markdown = '';
+
+  // Load story titles for chapter display
+  const storyTitles = loadStoryTitles();
+
+  let markdown = "";
 
   if (newStories.length > 0) {
-    markdown += '## New Stories\n\n';
+    markdown += "## New Stories\n\n";
     for (const story of newStories) {
       markdown += `- [${story.title}](${story.url})\n`;
     }
-    markdown += '\n';
+    markdown += "\n";
   }
 
   if (newChapters.length > 0) {
-    markdown += '## New Chapters\n\n';
+    markdown += "## New Chapters\n\n";
     for (const chapter of newChapters) {
-      markdown += `- [${chapter.storySlug} - Chapter ${chapter.chapterNumber}: ${chapter.title}](${chapter.url})\n`;
+      const storyTitle = storyTitles[chapter.storySlug] || chapter.storySlug;
+      markdown += `- [${storyTitle} - Chapter ${chapter.chapterNumber}: ${chapter.title}](${chapter.url})\n`;
     }
-    markdown += '\n';
+    markdown += "\n";
   }
 
   if (updatedChapters.length > 0) {
-    markdown += '## Updated Chapters\n\n';
+    markdown += "## Updated Chapters\n\n";
     for (const chapter of updatedChapters) {
-      markdown += `- [${chapter.storySlug} - Chapter ${chapter.chapterNumber}: ${chapter.title}](${chapter.url})\n`;
+      const storyTitle = storyTitles[chapter.storySlug] || chapter.storySlug;
+      markdown += `- [${storyTitle} - Chapter ${chapter.chapterNumber}: ${chapter.title}](${chapter.url})\n`;
     }
-    markdown += '\n';
+    markdown += "\n";
   }
 
   return markdown;
@@ -213,14 +253,16 @@ function generateContentSummary(changes) {
  * @returns {string}
  */
 function markdownToPlainText(markdown) {
-  return markdown
-    // Remove markdown links but keep text and URL
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')
-    // Remove headers but keep text
-    .replace(/^#+\s+/gm, '')
-    // Normalize whitespace
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return (
+    markdown
+      // Remove markdown links but keep text and URL
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+      // Remove headers but keep text
+      .replace(/^#+\s+/gm, "")
+      // Normalize whitespace
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
 }
 
 /**
@@ -229,20 +271,11 @@ function markdownToPlainText(markdown) {
  * @returns {string}
  */
 function markdownToHTML(markdown) {
-  // Simple markdown to HTML conversion
-  let html = markdown
-    // Headers
-    .replace(/^## (.+)$/gm, '<h2 style="color: #1f2937; font-size: 1.5em; font-weight: bold; margin: 1.5em 0 0.5em;">$1</h2>')
-    // Links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #2563eb; text-decoration: none;">$1</a>')
-    // List items
-    .replace(/^- (.+)$/gm, '<li style="margin: 0.5em 0;">$1</li>')
-    // Wrap lists
-    .replace(/(<li[^>]*>.*<\/li>\n?)+/gs, '<ul style="list-style-type: disc; padding-left: 1.5em; margin: 1em 0;">$&</ul>')
-    // Paragraphs
-    .replace(/^(?!<[uh]|<li)(.+)$/gm, '<p style="margin: 1em 0; line-height: 1.6;">$1</p>')
-    // Clean up
-    .replace(/\n/g, '');
+  // Use marked to convert markdown to HTML
+  const contentHtml = marked.parse(markdown, {
+    gfm: true,
+    breaks: false,
+  });
 
   return `
 <!DOCTYPE html>
@@ -250,12 +283,59 @@ function markdownToHTML(markdown) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #374151;
+      line-height: 1.6;
+    }
+    h2 {
+      color: #1f2937;
+      font-size: 1.5em;
+      font-weight: bold;
+      margin: 1.5em 0 0.5em;
+    }
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    ul {
+      list-style-type: disc;
+      padding-left: 1.5em;
+      margin: 1em 0;
+    }
+    li {
+      margin: 0.5em 0;
+    }
+    p {
+      margin: 1em 0;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 2em 0;
+    }
+    .footer {
+      color: #6b7280;
+      font-size: 0.875em;
+      margin: 1em 0;
+    }
+  </style>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #374151;">
-  ${html}
-  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
-  <p style="color: #6b7280; font-size: 0.875em; margin: 1em 0;">
-    You're receiving this because you subscribed to updates from <a href="https://ink.seancollings.dev" style="color: #2563eb;">ink.seancollings.dev</a>.
+<body>
+  ${contentHtml}
+  <hr>
+  <p class="footer">
+    You're receiving this because you subscribed to updates from <a href="https://ink.seancollings.dev">ink.seancollings.dev</a>.
+  </p>
+  <p class="footer">
+    <a href="{{unsubscribe_url}}">Unsubscribe from these emails</a>
   </p>
 </body>
 </html>
@@ -268,9 +348,11 @@ function markdownToHTML(markdown) {
  * @returns {boolean}
  */
 function hasChanges(changes) {
-  return changes.newStories.length > 0 ||
-         changes.newChapters.length > 0 ||
-         changes.updatedChapters.length > 0;
+  return (
+    changes.newStories.length > 0 ||
+    changes.newChapters.length > 0 ||
+    changes.updatedChapters.length > 0
+  );
 }
 
 /**
@@ -282,7 +364,7 @@ function parseArgs() {
   const parsed = { message: null };
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--message' && args[i + 1]) {
+    if (args[i] === "--message" && args[i + 1]) {
       parsed.message = args[i + 1];
       i++; // Skip next arg
     }
@@ -304,38 +386,38 @@ async function getPersonalNote(messageFlag, contentSummary) {
   }
 
   // Create draft file with template
-  const draftPath = path.join(os.tmpdir(), 'newsletter-draft.md');
+  const draftPath = path.join(os.tmpdir(), "newsletter-draft.md");
   const template = `# Add your personal note above this line
 # Lines starting with # will be removed
 
 ${contentSummary}`;
 
-  fs.writeFileSync(draftPath, template, 'utf-8');
+  fs.writeFileSync(draftPath, template, "utf-8");
 
   // Open editor
-  const editor = process.env.EDITOR || process.env.VISUAL || 'vim';
+  const editor = process.env.EDITOR || process.env.VISUAL || "vim";
 
   return new Promise((resolve, reject) => {
     const child = spawn(editor, [draftPath], {
-      stdio: 'inherit',
+      stdio: "inherit",
     });
 
-    child.on('exit', (code) => {
+    child.on("exit", (code) => {
       if (code !== 0) {
-        reject(new Error('Editor exited with error code'));
+        reject(new Error("Editor exited with error code"));
         return;
       }
 
       try {
         // Read edited content
-        const content = fs.readFileSync(draftPath, 'utf-8');
+        const content = fs.readFileSync(draftPath, "utf-8");
 
         // Remove comment lines and template
-        const lines = content.split('\n');
+        const lines = content.split("\n");
         const personalNote = lines
-          .filter(line => !line.startsWith('#'))
-          .join('\n')
-          .replace(contentSummary, '') // Remove the template summary
+          .filter((line) => !line.startsWith("#"))
+          .join("\n")
+          .replace(contentSummary, "") // Remove the template summary
           .trim();
 
         // Clean up draft file
@@ -352,7 +434,7 @@ ${contentSummary}`;
       }
     });
 
-    child.on('error', (error) => {
+    child.on("error", (error) => {
       reject(error);
     });
   });
@@ -368,7 +450,9 @@ async function sendEmail(markdownContent) {
   const segmentId = process.env.RESEND_SEGMENT_ID;
 
   if (!process.env.RESEND_API_KEY || !segmentId) {
-    throw new Error('Missing RESEND_API_KEY or RESEND_SEGMENT_ID environment variables');
+    throw new Error(
+      "Missing RESEND_API_KEY or RESEND_SEGMENT_ID environment variables"
+    );
   }
 
   const plainText = markdownToPlainText(markdownContent);
@@ -377,17 +461,17 @@ async function sendEmail(markdownContent) {
   try {
     const result = await resend.broadcasts.create({
       segmentId,
-      from: 'ink <updates@ink.seancollings.dev>',
-      subject: 'New updates on ink',
+      from: "ink <updates@ink.seancollings.dev>",
+      subject: "New updates on ink",
       text: plainText,
       html,
     });
 
-    if ('error' in result && result.error) {
+    if ("error" in result && result.error) {
       throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
     }
 
-    console.log('✓ Email sent successfully');
+    console.log("✓ Email sent successfully");
     console.log(`  Broadcast ID: ${result.data?.id}`);
   } catch (error) {
     throw new Error(`Failed to send email: ${error.message}`);
@@ -401,21 +485,25 @@ async function sendEmail(markdownContent) {
 function createNewsletterTag(content) {
   try {
     const now = new Date();
-    const tagName = `newsletter/${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    const tagName = `newsletter/${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}-${String(
+      now.getHours()
+    ).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
 
     // Create annotated tag
-    const tagFile = path.join(os.tmpdir(), 'tag-message.txt');
-    fs.writeFileSync(tagFile, content, 'utf-8');
+    const tagFile = path.join(os.tmpdir(), "tag-message.txt");
+    fs.writeFileSync(tagFile, content, "utf-8");
 
-    execSync(`git tag -a "${tagName}" -F "${tagFile}"`, { stdio: 'inherit' });
+    execSync(`git tag -a "${tagName}" -F "${tagFile}"`, { stdio: "inherit" });
 
     fs.unlinkSync(tagFile);
 
     console.log(`✓ Created git tag: ${tagName}`);
 
     // Push tag to remote
-    execSync(`git push origin "${tagName}"`, { stdio: 'inherit' });
-    console.log('✓ Pushed tag to remote');
+    execSync(`git push origin "${tagName}"`, { stdio: "inherit" });
+    console.log("✓ Pushed tag to remote");
   } catch (error) {
     throw new Error(`Failed to create/push git tag: ${error.message}`);
   }
@@ -426,7 +514,7 @@ function createNewsletterTag(content) {
  */
 async function main() {
   try {
-    console.log('📧 Newsletter Script\n');
+    console.log("📧 Newsletter Script\n");
 
     // Parse arguments
     const args = parseArgs();
@@ -436,42 +524,58 @@ async function main() {
 
     // Check if there are any changes
     if (!hasChanges(changes)) {
-      console.log('ℹ No new or updated content since last newsletter.');
-      console.log('  Nothing to send.');
+      console.log("ℹ No new or updated content since last newsletter.");
+      console.log("  Nothing to send.");
       process.exit(0);
     }
 
     // Display what was found
-    console.log('\nChanges detected:');
+    console.log("\nChanges detected:");
     if (changes.newStories.length > 0) {
-      console.log(`  • ${changes.newStories.length} new ${changes.newStories.length === 1 ? 'story' : 'stories'}`);
+      console.log(
+        `  • ${changes.newStories.length} new ${
+          changes.newStories.length === 1 ? "story" : "stories"
+        }`
+      );
     }
     if (changes.newChapters.length > 0) {
-      console.log(`  • ${changes.newChapters.length} new ${changes.newChapters.length === 1 ? 'chapter' : 'chapters'}`);
+      console.log(
+        `  • ${changes.newChapters.length} new ${
+          changes.newChapters.length === 1 ? "chapter" : "chapters"
+        }`
+      );
     }
     if (changes.updatedChapters.length > 0) {
-      console.log(`  • ${changes.updatedChapters.length} updated ${changes.updatedChapters.length === 1 ? 'chapter' : 'chapters'}`);
+      console.log(
+        `  • ${changes.updatedChapters.length} updated ${
+          changes.updatedChapters.length === 1 ? "chapter" : "chapters"
+        }`
+      );
     }
-    console.log('');
+    console.log("");
 
     // Generate content summary
     const contentSummary = generateContentSummary(changes);
 
     // Get personal note (via editor or --message flag)
-    console.log(args.message ? 'Using message from --message flag\n' : 'Opening editor for personal note...\n');
+    console.log(
+      args.message
+        ? "Using message from --message flag\n"
+        : "Opening editor for personal note...\n"
+    );
     const emailContent = await getPersonalNote(args.message, contentSummary);
 
     // Send email
-    console.log('Sending email...');
+    console.log("Sending email...");
     await sendEmail(emailContent);
 
     // Create git tag
-    console.log('Creating newsletter tag...');
+    console.log("Creating newsletter tag...");
     createNewsletterTag(emailContent);
 
-    console.log('\n✓ Newsletter sent successfully!');
+    console.log("\n✓ Newsletter sent successfully!");
   } catch (error) {
-    console.error('\n✗ Error:', error.message);
+    console.error("\n✗ Error:", error.message);
     process.exit(1);
   }
 }
@@ -482,4 +586,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 // Export for testing
-export { getLastNewsletterTag, getChangedFiles, parseFrontmatter, detectContentChanges };
+export {
+  getLastNewsletterTag,
+  getChangedFiles,
+  parseFrontmatter,
+  detectContentChanges,
+};
