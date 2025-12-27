@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import matter from 'gray-matter';
 
 /**
@@ -268,6 +269,91 @@ function hasChanges(changes) {
   return changes.newStories.length > 0 ||
          changes.newChapters.length > 0 ||
          changes.updatedChapters.length > 0;
+}
+
+/**
+ * Parse command-line arguments
+ * @returns {Object} Parsed arguments
+ */
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const parsed = { message: null };
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--message' && args[i + 1]) {
+      parsed.message = args[i + 1];
+      i++; // Skip next arg
+    }
+  }
+
+  return parsed;
+}
+
+/**
+ * Get personal note from user via editor or command-line flag
+ * @param {string|null} messageFlag - Message from --message flag
+ * @param {string} contentSummary - Auto-generated content summary
+ * @returns {Promise<string>} Full email content (note + summary)
+ */
+async function getPersonalNote(messageFlag, contentSummary) {
+  if (messageFlag) {
+    // Use message from command-line flag
+    return `${messageFlag}\n\n${contentSummary}`;
+  }
+
+  // Create draft file with template
+  const draftPath = path.join(os.tmpdir(), 'newsletter-draft.md');
+  const template = `# Add your personal note above this line
+# Lines starting with # will be removed
+
+${contentSummary}`;
+
+  fs.writeFileSync(draftPath, template, 'utf-8');
+
+  // Open editor
+  const editor = process.env.EDITOR || process.env.VISUAL || 'vim';
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(editor, [draftPath], {
+      stdio: 'inherit',
+    });
+
+    child.on('exit', (code) => {
+      if (code !== 0) {
+        reject(new Error('Editor exited with error code'));
+        return;
+      }
+
+      try {
+        // Read edited content
+        const content = fs.readFileSync(draftPath, 'utf-8');
+
+        // Remove comment lines and template
+        const lines = content.split('\n');
+        const personalNote = lines
+          .filter(line => !line.startsWith('#'))
+          .join('\n')
+          .replace(contentSummary, '') // Remove the template summary
+          .trim();
+
+        // Clean up draft file
+        fs.unlinkSync(draftPath);
+
+        // Combine personal note with fresh summary
+        const fullContent = personalNote
+          ? `${personalNote}\n\n${contentSummary}`
+          : contentSummary;
+
+        resolve(fullContent);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+  });
 }
 
 // Export for testing
