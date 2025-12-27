@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import NewsletterSubscribe from '../components/NewsletterSubscribe.astro';
 import { getCollection } from 'astro:content';
 
 // Get published stories only (not unpublished or unlisted)
@@ -28,6 +29,11 @@ const storyData = stories.map(story => {
 <Layout title="ink - Story Library">
   <div class="max-w-4xl mx-auto px-4 py-8">
     <h1 class="text-4xl font-bold mb-8">Story Library</h1>
+
+    <!-- Newsletter Subscription -->
+    <div class="mb-12 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <NewsletterSubscribe />
+    </div>
 
     {storyData.length === 0 ? (
       <p class="text-gray-600 dark:text-gray-400">No stories yet. Check back soon!</p>
