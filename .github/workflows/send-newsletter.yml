@@ -1,0 +1,45 @@
+name: Send Newsletter
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Personal message (optional - will use default if empty)'
+        required: false
+        type: string
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full git history for tag comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send newsletter
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_SEGMENT_ID: ${{ secrets.RESEND_SEGMENT_ID }}
+        run: |
+          if [ -n "${{ inputs.message }}" ]; then
+            node scripts/send-newsletter.js --message "${{ inputs.message }}"
+          else
+            node scripts/send-newsletter.js --message "New updates are live on ink.seancollings.dev!"
+          fi
+
+      - name: Push newsletter tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push --tags
