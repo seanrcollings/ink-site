@@ -5,6 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import matter from 'gray-matter';
+import { Resend } from 'resend';
+import 'dotenv/config';
 
 /**
  * Get the most recent newsletter tag
@@ -354,6 +356,69 @@ ${contentSummary}`;
       reject(error);
     });
   });
+}
+
+/**
+ * Send email via Resend
+ * @param {string} markdownContent - Email content in markdown
+ * @returns {Promise<void>}
+ */
+async function sendEmail(markdownContent) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const segmentId = process.env.RESEND_SEGMENT_ID;
+
+  if (!process.env.RESEND_API_KEY || !segmentId) {
+    throw new Error('Missing RESEND_API_KEY or RESEND_SEGMENT_ID environment variables');
+  }
+
+  const plainText = markdownToPlainText(markdownContent);
+  const html = markdownToHTML(markdownContent);
+
+  try {
+    const result = await resend.broadcasts.create({
+      segmentId,
+      from: 'ink <updates@ink.seancollings.dev>',
+      subject: 'New updates on ink',
+      text: plainText,
+      html,
+    });
+
+    if ('error' in result && result.error) {
+      throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+    }
+
+    console.log('✓ Email sent successfully');
+    console.log(`  Broadcast ID: ${result.data?.id}`);
+  } catch (error) {
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+}
+
+/**
+ * Create git tag with email content
+ * @param {string} content - Email content to store in tag annotation
+ */
+function createNewsletterTag(content) {
+  try {
+    const now = new Date();
+    const tagName = `newsletter/${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // Create annotated tag
+    const tagFile = path.join(os.tmpdir(), 'tag-message.txt');
+    fs.writeFileSync(tagFile, content, 'utf-8');
+
+    execSync(`git tag -a "${tagName}" -F "${tagFile}"`, { stdio: 'inherit' });
+
+    fs.unlinkSync(tagFile);
+
+    console.log(`✓ Created git tag: ${tagName}`);
+
+    // Push tag to remote
+    execSync(`git push origin "${tagName}"`, { stdio: 'inherit' });
+    console.log('✓ Pushed tag to remote');
+  } catch (error) {
+    throw new Error(`Failed to create/push git tag: ${error.message}`);
+  }
 }
 
 // Export for testing
