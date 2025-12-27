@@ -1,0 +1,78 @@
+---
+// No server-side props needed
+---
+
+<div class="newsletter-subscribe">
+  <form id="newsletterForm" class="space-y-4">
+    <div>
+      <label for="email" class="block text-sm font-medium mb-2">
+        Subscribe to updates
+      </label>
+      <div class="flex gap-2">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder="your@email.com"
+          class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        <button
+          type="submit"
+          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Subscribe
+        </button>
+      </div>
+    </div>
+    <div id="message" class="hidden text-sm" role="alert"></div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('newsletterForm') as HTMLFormElement;
+  const emailInput = document.getElementById('email') as HTMLInputElement;
+  const messageDiv = document.getElementById('message') as HTMLDivElement;
+  const submitButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = emailInput?.value;
+    if (!email) return;
+
+    // Disable form during submission
+    submitButton.disabled = true;
+    messageDiv.classList.add('hidden');
+
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success
+        messageDiv.textContent = data.message || 'Successfully subscribed!';
+        messageDiv.className = 'text-sm text-green-600 dark:text-green-400';
+        emailInput.value = '';
+      } else {
+        // Error from server
+        messageDiv.textContent = data.error || 'Failed to subscribe. Please try again.';
+        messageDiv.className = 'text-sm text-red-600 dark:text-red-400';
+      }
+    } catch (error) {
+      // Network or parsing error
+      messageDiv.textContent = 'Network error. Please check your connection and try again.';
+      messageDiv.className = 'text-sm text-red-600 dark:text-red-400';
+    } finally {
+      messageDiv.classList.remove('hidden');
+      submitButton.disabled = false;
+    }
+  });
+</script>
