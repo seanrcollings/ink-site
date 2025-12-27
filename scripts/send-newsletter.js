@@ -335,7 +335,7 @@ function markdownToHTML(markdown) {
     You're receiving this because you subscribed to updates from <a href="https://ink.seancollings.dev">ink.seancollings.dev</a>.
   </p>
   <p class="footer">
-    <a href="{{unsubscribe_url}}">Unsubscribe from these emails</a>
+    <a href="{{{RESEND_UNSUBSCRIBE_URL}}}">Unsubscribe from these emails</a>
   </p>
 </body>
 </html>
@@ -374,25 +374,20 @@ function parseArgs() {
 }
 
 /**
- * Get personal note from user via editor or command-line flag
+ * Get email message from user via editor or command-line flag
  * @param {string|null} messageFlag - Message from --message flag
  * @param {string} contentSummary - Auto-generated content summary
- * @returns {Promise<string>} Full email content (note + summary)
+ * @returns {Promise<string|null>} Email content or null if empty
  */
-async function getPersonalNote(messageFlag, contentSummary) {
+async function composeMessage(messageFlag, contentSummary) {
   if (messageFlag) {
-    // Use message from command-line flag
+    // Use message from command-line flag with content summary
     return `${messageFlag}\n\n${contentSummary}`;
   }
 
-  // Create draft file with template
+  // Create draft file with content summary pre-filled
   const draftPath = path.join(os.tmpdir(), "newsletter-draft.md");
-  const template = `# Add your personal note above this line
-# Lines starting with # will be removed
-
-${contentSummary}`;
-
-  fs.writeFileSync(draftPath, template, "utf-8");
+  fs.writeFileSync(draftPath, contentSummary, "utf-8");
 
   // Open editor
   const editor = process.env.EDITOR || process.env.VISUAL || "vim";
@@ -410,25 +405,13 @@ ${contentSummary}`;
 
       try {
         // Read edited content
-        const content = fs.readFileSync(draftPath, "utf-8");
-
-        // Remove comment lines and template
-        const lines = content.split("\n");
-        const personalNote = lines
-          .filter((line) => !line.startsWith("#"))
-          .join("\n")
-          .replace(contentSummary, "") // Remove the template summary
-          .trim();
+        const content = fs.readFileSync(draftPath, "utf-8").trim();
 
         // Clean up draft file
         fs.unlinkSync(draftPath);
 
-        // Combine personal note with fresh summary
-        const fullContent = personalNote
-          ? `${personalNote}\n\n${contentSummary}`
-          : contentSummary;
-
-        resolve(fullContent);
+        // Return content or null if empty
+        resolve(content || null);
       } catch (error) {
         reject(error);
       }
@@ -463,8 +446,9 @@ async function sendEmail(markdownContent) {
       segmentId,
       from: "ink <updates@ink.seancollings.dev>",
       subject: "New updates on ink",
-      text: plainText,
+      // text: plainText,
       html,
+      name: `Newsletter ${new Date().toISOString()}`,
     });
 
     if ("error" in result && result.error) {
@@ -502,8 +486,8 @@ function createNewsletterTag(content) {
     console.log(`✓ Created git tag: ${tagName}`);
 
     // Push tag to remote
-    execSync(`git push origin "${tagName}"`, { stdio: "inherit" });
-    console.log("✓ Pushed tag to remote");
+    // execSync(`git push origin "${tagName}"`, { stdio: "inherit" });
+    // console.log("✓ Pushed tag to remote");
   } catch (error) {
     throw new Error(`Failed to create/push git tag: ${error.message}`);
   }
@@ -557,13 +541,19 @@ async function main() {
     // Generate content summary
     const contentSummary = generateContentSummary(changes);
 
-    // Get personal note (via editor or --message flag)
+    // Compose message (via editor or --message flag)
     console.log(
       args.message
         ? "Using message from --message flag\n"
-        : "Opening editor for personal note...\n"
+        : "Opening editor to compose newsletter...\n"
     );
-    const emailContent = await getPersonalNote(args.message, contentSummary);
+    const emailContent = await composeMessage(args.message, contentSummary);
+
+    // Check if user cancelled (empty content)
+    if (!emailContent) {
+      console.log("\n✗ Newsletter cancelled - no content provided");
+      process.exit(0);
+    }
 
     // Send email
     console.log("Sending email...");
