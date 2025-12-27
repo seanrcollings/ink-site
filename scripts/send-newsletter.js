@@ -168,5 +168,107 @@ function detectContentChanges() {
   };
 }
 
+/**
+ * Generate markdown summary of content changes
+ * @param {Object} changes - Content changes object
+ * @returns {string} Markdown summary
+ */
+function generateContentSummary(changes) {
+  const { newStories, newChapters, updatedChapters } = changes;
+  let markdown = '';
+
+  if (newStories.length > 0) {
+    markdown += '## New Stories\n\n';
+    for (const story of newStories) {
+      markdown += `- [${story.title}](${story.url})\n`;
+    }
+    markdown += '\n';
+  }
+
+  if (newChapters.length > 0) {
+    markdown += '## New Chapters\n\n';
+    for (const chapter of newChapters) {
+      markdown += `- [${chapter.storySlug} - Chapter ${chapter.chapterNumber}: ${chapter.title}](${chapter.url})\n`;
+    }
+    markdown += '\n';
+  }
+
+  if (updatedChapters.length > 0) {
+    markdown += '## Updated Chapters\n\n';
+    for (const chapter of updatedChapters) {
+      markdown += `- [${chapter.storySlug} - Chapter ${chapter.chapterNumber}: ${chapter.title}](${chapter.url})\n`;
+    }
+    markdown += '\n';
+  }
+
+  return markdown;
+}
+
+/**
+ * Convert markdown to plain text
+ * @param {string} markdown
+ * @returns {string}
+ */
+function markdownToPlainText(markdown) {
+  return markdown
+    // Remove markdown links but keep text and URL
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')
+    // Remove headers but keep text
+    .replace(/^#+\s+/gm, '')
+    // Normalize whitespace
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
+ * Convert markdown to HTML
+ * @param {string} markdown
+ * @returns {string}
+ */
+function markdownToHTML(markdown) {
+  // Simple markdown to HTML conversion
+  let html = markdown
+    // Headers
+    .replace(/^## (.+)$/gm, '<h2 style="color: #1f2937; font-size: 1.5em; font-weight: bold; margin: 1.5em 0 0.5em;">$1</h2>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #2563eb; text-decoration: none;">$1</a>')
+    // List items
+    .replace(/^- (.+)$/gm, '<li style="margin: 0.5em 0;">$1</li>')
+    // Wrap lists
+    .replace(/(<li[^>]*>.*<\/li>\n?)+/gs, '<ul style="list-style-type: disc; padding-left: 1.5em; margin: 1em 0;">$&</ul>')
+    // Paragraphs
+    .replace(/^(?!<[uh]|<li)(.+)$/gm, '<p style="margin: 1em 0; line-height: 1.6;">$1</p>')
+    // Clean up
+    .replace(/\n/g, '');
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #374151;">
+  ${html}
+  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
+  <p style="color: #6b7280; font-size: 0.875em; margin: 1em 0;">
+    You're receiving this because you subscribed to updates from <a href="https://ink.seancollings.dev" style="color: #2563eb;">ink.seancollings.dev</a>.
+  </p>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Check if there are any changes to send
+ * @param {Object} changes
+ * @returns {boolean}
+ */
+function hasChanges(changes) {
+  return changes.newStories.length > 0 ||
+         changes.newChapters.length > 0 ||
+         changes.updatedChapters.length > 0;
+}
+
 // Export for testing
 export { getLastNewsletterTag, getChangedFiles, parseFrontmatter, detectContentChanges };
