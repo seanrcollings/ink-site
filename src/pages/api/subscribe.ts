@@ -3,13 +3,24 @@ import { Resend } from "resend";
 
 export const prerender = false;
 
-const resend = new Resend(import.meta.env.RESEND_API_KEY);
-const segmentId = import.meta.env.RESEND_SEGMENT_ID;
+export const POST: APIRoute = async ({ request, locals }) => {
+  const runtime = locals.runtime;
+  const { RESEND_API_KEY, RESEND_SEGMENT_ID } = runtime.env;
 
-export const POST: APIRoute = async ({ request }) => {
+  // Validate environment variables
+  if (!RESEND_API_KEY || !RESEND_SEGMENT_ID) {
+    console.error("Missing Resend configuration");
+    return new Response(
+      JSON.stringify({ error: "Server configuration error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const resend = new Resend(RESEND_API_KEY);
+
   try {
     // Parse request body
-    let body;
+    let body: { email?: string } = {};
     try {
       body = await request.json();
     } catch (parseError) {
@@ -40,15 +51,6 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Validate environment variables
-    if (!import.meta.env.RESEND_API_KEY || !segmentId) {
-      console.error("Missing Resend configuration");
-      return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     // Add subscriber to Resend segment
     const result = await resend.contacts.create({
       email,
@@ -59,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (result.data?.id) {
       try {
         resend.contacts.segments.add({
-          segmentId: segmentId,
+          segmentId: RESEND_SEGMENT_ID,
           contactId: result.data?.id || "",
         });
       } catch (segmentError) {
