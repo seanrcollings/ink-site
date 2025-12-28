@@ -6,7 +6,13 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
   site: "https://ink.seancollings.dev",
-  adapter: cloudflare(),
+  adapter: cloudflare({
+    platformProxy: {
+      enabled: true,
+    },
+
+    imageService: "cloudflare",
+  }),
   vite: {
     plugins: [tailwindcss()],
   },
