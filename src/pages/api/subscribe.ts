@@ -57,13 +57,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
       unsubscribed: false,
     });
 
+    console.log(result);
+
     // Add contact to segment if creation was successful
     if (result.data?.id) {
       try {
-        resend.contacts.segments.add({
+        const segmentResult = await resend.contacts.segments.add({
           segmentId: RESEND_SEGMENT_ID,
           contactId: result.data?.id || "",
         });
+        console.log(segmentResult);
       } catch (segmentError) {
         console.error("Failed to add contact to segment:", segmentError);
         // Continue - contact was created but segment assignment failed
