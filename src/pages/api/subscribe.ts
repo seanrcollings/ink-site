@@ -1,9 +1,34 @@
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
+import { getRateLimitKey, checkRateLimit } from "../../lib/rateLimit";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
+  // Rate limiting - IP-based (5 requests per minute)
+  const ipRateLimitKey = getRateLimitKey(request, "ip");
+  const ipRateLimit = checkRateLimit(ipRateLimitKey, 5, 60);
+
+  if (!ipRateLimit.allowed) {
+    const retryAfter = Math.ceil((ipRateLimit.resetTime - Date.now()) / 1000);
+    return new Response(
+      JSON.stringify({
+        error: "Too many requests. Please try again later.",
+        retryAfter,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": retryAfter.toString(),
+          "X-RateLimit-Limit": "5",
+          "X-RateLimit-Remaining": ipRateLimit.remaining.toString(),
+          "X-RateLimit-Reset": new Date(ipRateLimit.resetTime).toISOString(),
+        },
+      }
+    );
+  }
+
   const runtime = locals.runtime;
   const { RESEND_API_KEY, RESEND_SEGMENT_ID } = runtime.env;
 
@@ -49,6 +74,30 @@ export const POST: APIRoute = async ({ request, locals }) => {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // Rate limiting - Email-based (2 requests per hour per email)
+    const emailRateLimitKey = `email:${email}`;
+    const emailRateLimit = checkRateLimit(emailRateLimitKey, 2, 3600);
+
+    if (!emailRateLimit.allowed) {
+      const retryAfter = Math.ceil(
+        (emailRateLimit.resetTime - Date.now()) / 1000
+      );
+      return new Response(
+        JSON.stringify({
+          error:
+            "This email has been used too many times recently. Please try again later.",
+          retryAfter,
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": retryAfter.toString(),
+          },
+        }
+      );
     }
 
     // Add subscriber to Resend segment
