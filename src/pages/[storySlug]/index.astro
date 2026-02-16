@@ -54,17 +54,17 @@ const chapters = allChapters
       </p>
     ) : (
       <>
-        <div class="mb-6 flex gap-4">
+        <div class="mb-6 flex flex-col sm:flex-row gap-4">
           <a
             href={`/${story.slug}/${chapters[0].slug.split('/').pop()}`}
-            class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            class="w-full sm:w-auto text-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
             Start Reading
           </a>
           <a
             id="resumeReadingBtn"
             href="#"
-            class="hidden px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            class="hidden w-full sm:w-auto text-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
           >
             Resume Reading
           </a>
