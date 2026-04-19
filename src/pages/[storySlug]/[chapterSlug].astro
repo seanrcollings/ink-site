@@ -92,14 +92,14 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
     </article>
 
     <!-- Navigation footer -->
-    <nav class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+    <nav class="mt-12 pt-8 mb-15 border-t border-gray-200 dark:border-gray-700">
       <div class="flex items-center justify-between">
         {prevChapter ? (
           <a
             href={`/${chapter.data.storySlug}/${prevChapter.slug.split('/').pop()}`}
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            ← Previous: {prevChapter.data.title}
+            ← Previous
           </a>
         ) : (
           <div></div>
@@ -110,7 +110,7 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
             href={`/${chapter.data.storySlug}/${nextChapter.slug.split('/').pop()}`}
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            Next: {nextChapter.data.title} →
+            Next →
           </a>
         ) : (
           <div></div>
