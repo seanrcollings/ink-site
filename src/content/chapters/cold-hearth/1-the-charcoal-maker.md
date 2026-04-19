@@ -24,13 +24,13 @@ He turned sharply and stalked towards the woodpile.
 
 He set a log on the chopping block and lifted the ax in two hands. The sharp crack of the wood splitting cut through the cold air and low crackling of the mounds. Chop. Breathe. Don't think. Chop again. It was the only rhythm Opri trusted anymore. But now, even that fled him.
 
-The ax bit into another log, splitting it clean. His mother had taught him to read the grain, to find where the wood wanted to break. She'd stood behind him in this very clearing, her hands guiding his on the handle. "Let the wood do the work," she'd said.
+The ax bit into another log, splitting it clean. His mother had taught him to read the grain, to find where the wood wanted to break. She'd stood behind him in a similar clearing, her hands guiding his on the handle. "Let the wood do the work," she would say.
 
-She'd been the first.
+She had been the first.
 
 He tossed the split wood onto the pile and reached for another log, but his hand stilled on the bark. Two years since her passing, no more. It began with a cough that would not stop, then the black lines crawled up her skin like vines seeking sunlight. By the end she no longer knew his face, just stared at her own hands like they belonged to someone else.
 
-He banished the memory with another swing of the ax, another split log. Pausing for a moment, chest rising and falling heavily, he let the ax drop to the ground. He wiped a hand across his soot-and-sweat-covered forehead. He watched the charcoal mounds for a few moments—looking, hoping, for anything amiss. But he knew he would find none. His eyes flicked to the tree line. He should return home, should check on her. He should—
+He banished the memory with another swing of the ax, another split log. Pausing for a moment, chest rising and falling heavily, he let the ax drop to the ground and wiped a hand across his soot-and-sweat-covered forehead. He watched the charcoal mounds for a few moments—looking, hoping, for anything amiss. But he knew he would find none. His eyes flicked to the tree line. He should return home, should check on her. He should—
 
 He bent, retrieving the ax from where he dropped it. With mechanical precision he turned and placed another log on the chopping block. He forced his shoulders to loosen, forced his grip to steady. Another log. Another swing. The rhythm would return if he could just keep moving. But the thoughts weren't done with him.
 
@@ -44,11 +44,11 @@ The children needed their mother. Bran, now nearly grown, still sometimes looked
 
 The log slipped from his grip, tumbling to the ground.
 
-Tellis. His daughter. Already following the same dark path. The cough had started three months ago, soft at first. Just a tickle in her throat, she'd said. Then the black lines appeared, thin as spider silk threading beneath the skin of her wrists. Within days they clawed up her arms, growing to the size of tree branches. Now she lay in that bed, breath rattling in her chest, mind held in a permanent slumber. A slumber she would never awake from.
+Tellis. His daughter. Already following the same dark path. The cough had started three months ago, soft at first. Just a tickle in her throat, she'd said. Then the black lines appeared, thin as spider silk threading beneath the skin of her wrists. Within days they clawed up her arms, growing to the size of fingers. Now she lay in that bed, breath rattling in her chest, mind held in a permanent slumber. A slumber she would never awake from.
 
 The same way. All of them, the same way.
 
-He snatched up the fallen log and slammed it onto the chopping block. The ax came down hard, biting deep with a sound like breaking bone, and Opri brought it down again, harder this time, as if violence against wood could somehow stay what was happening. He wrenched it free and struck again, harder. And again. Wood split and flew, but he didn't stop to stack it. There was already more wood than he needed. Had been for days. But he couldn't stop. He just kept swinging, each impact jarring up through his arms.
+He snatched up the fallen log and slammed it onto the chopping block. The ax came down hard, biting deep with a sound like breaking bone. Opri brought it down again, harder this time, as if violence against wood could somehow stay what was happening. He wrenched it free and struck again. And again. Wood split and flew, but he didn't stop to stack it. There was already more wood than he needed. Had been for days. But he couldn't stop. He just kept swinging, each impact jarring up through his arms.
 
 Why his mother? Why Mara? Why Tellis?
 

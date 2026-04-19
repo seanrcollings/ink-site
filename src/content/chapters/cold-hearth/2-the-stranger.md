@@ -6,6 +6,8 @@ publishDate: 2026-01-14
 state: published
 ---
 
+## The Stranger
+
 The sound of footsteps pulled Opri's attention from the chopping block. He glanced toward the forest path as a figure entered the halo of light surrounding the pitstead.
 
 Bran.
@@ -88,7 +90,7 @@ Bran turned and trotted off a ways. Though, as Opri noted, not far enough away t
 
 He shook his head, then turned and walked towards the stranger, ax in hand. As he approached, the cloaked man turned to face him.
 
-"Hail, stranger," Opri called, shifting the wood ax to rest comfortable against his shoulder.
+"Hail, stranger," Opri called, shifting the wood ax to rest comfortably against his shoulder.
 
 "Quite a trek from town, this is." The voice emerged from the hood's shadow, features lost in darkness.
 
