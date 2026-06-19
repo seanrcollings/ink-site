@@ -1,19 +1,19 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
   // Generate paths for published and unlisted chapters (not unpublished)
   // Also exclude chapters whose parent story is unpublished
   const chapters = await getCollection('chapters', ({ data }) => data.state !== 'unpublished');
   const stories = await getCollection('stories', ({ data }) => data.state !== 'unpublished');
-  const accessibleStorySlugs = new Set(stories.map(s => s.slug));
+  const accessibleStorySlugs = new Set(stories.map(s => s.id));
 
   return chapters
     .filter(chapter => accessibleStorySlugs.has(chapter.data.storySlug))
     .map(chapter => {
       // Extract chapter slug part from full slug (e.g., "example-story/chapter-one" -> "chapter-one")
-      const chapterSlugPart = chapter.slug.split('/').pop() || chapter.slug;
+      const chapterSlugPart = chapter.id.split('/').pop() || chapter.id;
       return {
         params: {
           storySlug: chapter.data.storySlug,
@@ -25,11 +25,11 @@ export async function getStaticPaths() {
 }
 
 const { chapter } = Astro.props;
-const { Content } = await chapter.render();
+const { Content } = await render(chapter);
 
 // Get story info
 const stories = await getCollection('stories');
-const story = stories.find(s => s.slug === chapter.data.storySlug);
+const story = stories.find(s => s.id === chapter.data.storySlug);
 
 // Get published chapters for navigation (only show published in prev/next)
 const allChapters = await getCollection('chapters', ({ data }) => data.state === 'published');
@@ -38,7 +38,7 @@ const storyChapters = allChapters
   .sort((a, b) => a.data.chapterNumber - b.data.chapterNumber);
 
 // Find prev/next chapters
-const currentIndex = storyChapters.findIndex(ch => ch.slug === chapter.slug);
+const currentIndex = storyChapters.findIndex(ch => ch.id === chapter.id);
 const prevChapter = currentIndex > 0 ? storyChapters[currentIndex - 1] : null;
 const nextChapter = currentIndex < storyChapters.length - 1 ? storyChapters[currentIndex + 1] : null;
 
@@ -64,7 +64,7 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
       <div class="flex items-center justify-between">
         {prevChapter ? (
           <a
-            href={`/${chapter.data.storySlug}/${prevChapter.slug.split('/').pop()}`}
+            href={`/${chapter.data.storySlug}/${prevChapter.id.split('/').pop()}`}
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             ← Previous
@@ -75,7 +75,7 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
 
         {nextChapter ? (
           <a
-            href={`/${chapter.data.storySlug}/${nextChapter.slug.split('/').pop()}`}
+            href={`/${chapter.data.storySlug}/${nextChapter.id.split('/').pop()}`}
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             Next →
@@ -96,7 +96,7 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
       <div class="flex items-center justify-between">
         {prevChapter ? (
           <a
-            href={`/${chapter.data.storySlug}/${prevChapter.slug.split('/').pop()}`}
+            href={`/${chapter.data.storySlug}/${prevChapter.id.split('/').pop()}`}
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             ← Previous
@@ -107,7 +107,7 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
 
         {nextChapter ? (
           <a
-            href={`/${chapter.data.storySlug}/${nextChapter.slug.split('/').pop()}`}
+            href={`/${chapter.data.storySlug}/${nextChapter.id.split('/').pop()}`}
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             Next →
@@ -130,7 +130,7 @@ const pageTitle = `${chapter.data.title} - ${story?.data.title}`;
     </svg>
   </button>
 
-  <script define:vars={{ storySlug: chapter.data.storySlug, chapterSlug: chapter.slug }}>
+  <script define:vars={{ storySlug: chapter.data.storySlug, chapterSlug: chapter.id }}>
     // Reading progress indicator
     const progressBar = document.getElementById('readingProgress');
     const chapterContent = document.getElementById('chapterContent');
