@@ -14,7 +14,8 @@
 	},
 	"observability": {
 		"enabled": true
-	}
+	},
+  "account_id": "db265d90c075aadffbacc8983d3b4c72"
 	/**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
